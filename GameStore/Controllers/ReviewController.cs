@@ -5,59 +5,54 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GameStore.Models.Catalogo;
-using Microsoft.AspNetCore.Authorization;
-using GameStore.Models;
-using GameStore.Enums;
 using GameStore.Data;
+using GameStore.Models.Catalogo;
 
 namespace GameStore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GameController : ControllerBase
+    public class ReviewController : ControllerBase
     {
         private readonly GameStoreDBContext _context;
 
-        public GameController(GameStoreDBContext context)
+        public ReviewController(GameStoreDBContext context)
         {
             _context = context;
         }
 
-        // GET: api/Game
-        //[Authorize(Roles = "Admin, User")]
-        [HttpGet ("GetAllGames")]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGame()
+        // GET: api/Review
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Review>>> GetReview()
         {
-            return await _context.Game.ToListAsync();
+            return await _context.Review.ToListAsync();
         }
 
-        // GET: api/Game/5
+        // GET: api/Review/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(int id)
+        public async Task<ActionResult<Review>> GetReview(int id)
         {
-            var game = await _context.Game.FindAsync(id);
+            var review = await _context.Review.FindAsync(id);
 
-            if (game == null)
+            if (review == null)
             {
                 return NotFound();
             }
 
-            return game;
+            return review;
         }
 
-
-        // PUT: api/Game/5
+        // PUT: api/Review/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int id, [FromBody] Game game)
+        public async Task<IActionResult> PutReview(int id, Review review)
         {
-            if (id != game.IdGame)
+            if (id != review.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(game).State = EntityState.Modified;
+            _context.Entry(review).State = EntityState.Modified;
 
             try
             {
@@ -65,7 +60,7 @@ namespace GameStore.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!GameExists(id))
+                if (!ReviewExists(id))
                 {
                     return NotFound();
                 }
@@ -78,36 +73,36 @@ namespace GameStore.Controllers
             return NoContent();
         }
 
-        // POST: api/Game
+        // POST: api/Review
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("AddGame")]
-        public async Task<ActionResult<Game>> PostGame([FromBody] Game game)
+        [HttpPost]
+        public async Task<ActionResult<Review>> PostReview(Review review)
         {
-            _context.Game.Add(game);
+            _context.Review.Add(review);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGame", new { id = game.IdGame }, game);
+            return CreatedAtAction("GetReview", new { id = review.Id }, review);
         }
 
-        // DELETE: api/Game/5
+        // DELETE: api/Review/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGame(int id)
+        public async Task<IActionResult> DeleteReview(int id)
         {
-            var game = await _context.Game.FindAsync(id);
-            if (game == null)
+            var review = await _context.Review.FindAsync(id);
+            if (review == null)
             {
                 return NotFound();
             }
 
-            _context.Game.Remove(game);
+            _context.Review.Remove(review);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool GameExists(int id)
+        private bool ReviewExists(int id)
         {
-            return _context.Game.Any(e => e.IdGame == id);
+            return _context.Review.Any(e => e.Id == id);
         }
     }
 }

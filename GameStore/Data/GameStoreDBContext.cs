@@ -31,7 +31,7 @@ namespace GameStore.Data
 
         public DbSet<UserImage> UserImage { get; set; }
 
-        //public DbSet<UserDTO> usuario { get; set; }
+        public DbSet<Review> Review { get; set; }
 
     }
 }

@@ -10,6 +10,7 @@ using GameStore.Models.Catalogo;
 using GameStore.Models.BindingModel;
 using GameStore.Models;
 using GameStore.Enums;
+using Microsoft.AspNetCore.Hosting;
 
 namespace GameStore.Controllers
 {
@@ -18,10 +19,12 @@ namespace GameStore.Controllers
     public class ProductController : ControllerBase
     {
         private readonly GameStoreDBContext _context;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(GameStoreDBContext context)
+        public ProductController(GameStoreDBContext context, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
+            _webHostEnvironment = webHostEnvironment;
         }
 
         // GET: api/Product
@@ -30,6 +33,27 @@ namespace GameStore.Controllers
         {
             return await _context.Product.ToListAsync();
         }
+
+        /*
+        [HttpGet("GenerateReport")]
+        public async Task<IActionResult> GenerateReport()
+        {
+            string mimtype = "";
+            int extension = 1;
+            var path = $"{this._webHostEnvironment.WebRootPath}\\Reports\\ProductReport.rdlc";
+            Dictionary<string, string> parameters = new Dictionary<string, string>();
+            //parameters.Add("rp1", "Hola mundo");
+            LocalReport localReport = new LocalReport(path);
+            
+            var products = await _context.Product.ToListAsync();
+            //localReport.AddDataSource("Prod", products);
+            //TODO HACER QUE MUESTRE LA INFORMACION EN EL REPORTE
+            localReport.AddDataSource("Product", products);
+            var result = localReport.Execute(RenderType.Pdf, extension, parameters, mimtype);
+            var file = File(result.MainStream, "application/pdf");
+            return file;
+        }
+        */
 
         // GET: api/Product/5
         [HttpGet("{id}")]
@@ -119,7 +143,6 @@ namespace GameStore.Controllers
             return NoContent();
         }
 
-        //TODO METODO PARA COMPRAR, RESTAR 1 A QUANTITY Y QUITAR FUNDS DE USUARIO
         [HttpPost("UpdateQuantity")]
         public async Task<ActionResult<Product>> UpdateQuantity([FromBody] UpdateQuantityProductModel model)
         {
