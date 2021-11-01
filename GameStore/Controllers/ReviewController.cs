@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GameStore.Data;
 using GameStore.Models.Catalogo;
+using GameStore.Models.BindingModel;
+using GameStore.Models;
 
 namespace GameStore.Controllers
 {
@@ -42,6 +44,20 @@ namespace GameStore.Controllers
             return review;
         }
 
+        [HttpGet("GetReviewByProductId/{productId}")]
+        public async Task<object> GetReviewByProductId(int productId)
+        {
+            var result = await _context.Review.ToListAsync();
+            List<Review> reviewList = new List<Review>();
+            foreach (var review in result) { 
+                if(review.ProductId == productId)
+                {
+                    reviewList.Add(review);
+                }
+            }
+            return reviewList;
+        }
+
         // PUT: api/Review/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -73,9 +89,37 @@ namespace GameStore.Controllers
             return NoContent();
         }
 
+        [HttpGet("VerifyReview/{email}/{productId}")]
+        public async Task<object> VerifyReview(string email, int productId)
+        {
+            var result = await _context.Review.ToListAsync();
+            foreach (var review in result)
+            {
+                if (review.ProductId == productId && review.Email == email)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        [HttpPost("UpdateUsefulCountReviewModel")]
+        public async Task<object> UpdateReviewLike([FromBody] UpdateUsefulCountReviewModel model)
+        {
+            var currentReviewList = _context.Review.Where(x => x.ProductId == model.productId).ToList();
+            foreach (var review in currentReviewList)
+            {
+                var reviewLike = _context.ReviewLike.Where(x => x.ReviewId == review.Id).ToListAsync();
+                var usefulCountTotal = reviewLike.Result.Sum(x => x.LikeValue);
+                review.UsefulCount = usefulCountTotal;
+                await _context.SaveChangesAsync();
+            }
+            return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "Useful Count updated!", null));
+        }
+
         // POST: api/Review
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
+        [HttpPost("SaveReview")]
         public async Task<ActionResult<Review>> PostReview(Review review)
         {
             _context.Review.Add(review);
@@ -85,7 +129,7 @@ namespace GameStore.Controllers
         }
 
         // DELETE: api/Review/5
-        [HttpDelete("{id}")]
+        [HttpDelete("DeleteReviewById/{id}")]
         public async Task<IActionResult> DeleteReview(int id)
         {
             var review = await _context.Review.FindAsync(id);

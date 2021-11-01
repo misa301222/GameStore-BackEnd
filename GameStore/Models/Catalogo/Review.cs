@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ namespace GameStore.Models.Catalogo
     {
         public Review(int id, int productId, string email, string title, string description, int stars, bool verifiedPurchase, int usefulCount, string reviewDate)
         {
+            Id = id;
             ProductId = productId;
             Email = email;
             Title = title;
@@ -20,7 +22,8 @@ namespace GameStore.Models.Catalogo
             ReviewDate = reviewDate;
         }
 
-        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [Key, Column(Order = 0)]
         public int Id { get; set; }
         public int ProductId { get; set; }
         public string Email { get; set; }

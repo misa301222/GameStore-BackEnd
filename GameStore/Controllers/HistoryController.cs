@@ -45,6 +45,28 @@ namespace GameStore.Controllers
             return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "", filterList));
         }
 
+        [HttpGet("VerifyPurchase/{email}/{productId}")]
+        public async Task<object> VerifyPurchase(String email, int productId)
+        {
+            try
+            {
+                var result = await _context.History.Where(x => x.Email == email && x.ProductId == productId).ToListAsync();
+                if (result.Count > 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("NOT FOUND: " + ex);
+                return false;
+            }
+        }
+
         // GET: api/History/5
         [HttpGet("{id}")]
         public async Task<ActionResult<History>> GetHistory(int id)
