@@ -5,59 +5,54 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GameStore.Models.Catalogo;
-using Microsoft.AspNetCore.Authorization;
-using GameStore.Models;
-using GameStore.Enums;
 using GameStore.Data;
+using GameStore.Models.Catalogo;
 
 namespace GameStore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GameController : ControllerBase
+    public class HelpController : ControllerBase
     {
         private readonly GameStoreDBContext _context;
 
-        public GameController(GameStoreDBContext context)
+        public HelpController(GameStoreDBContext context)
         {
             _context = context;
         }
 
-        // GET: api/Game
-        //[Authorize(Roles = "Admin, User")]
-        [HttpGet ("GetAllGames")]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGame()
+        // GET: api/Help
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Help>>> GetHelp()
         {
-            return await _context.Game.ToListAsync();
+            return await _context.Help.ToListAsync();
         }
 
-        // GET: api/Game/5
+        // GET: api/Help/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(int id)
+        public async Task<ActionResult<Help>> GetHelp(int id)
         {
-            var game = await _context.Game.FindAsync(id);
+            var help = await _context.Help.FindAsync(id);
 
-            if (game == null)
+            if (help == null)
             {
                 return NotFound();
             }
 
-            return game;
+            return help;
         }
 
-
-        // PUT: api/Game/5
+        // PUT: api/Help/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int id, [FromBody] Game game)
+        public async Task<IActionResult> PutHelp(int id, Help help)
         {
-            if (id != game.IdGame)
+            if (id != help.HelpId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(game).State = EntityState.Modified;
+            _context.Entry(help).State = EntityState.Modified;
 
             try
             {
@@ -65,7 +60,7 @@ namespace GameStore.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!GameExists(id))
+                if (!HelpExists(id))
                 {
                     return NotFound();
                 }
@@ -78,36 +73,36 @@ namespace GameStore.Controllers
             return NoContent();
         }
 
-        // POST: api/Game
+        // POST: api/Help
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("AddGame")]
-        public async Task<ActionResult<Game>> PostGame([FromBody] Game game)
+        [HttpPost]
+        public async Task<ActionResult<Help>> PostHelp(Help help)
         {
-            _context.Game.Add(game);
+            _context.Help.Add(help);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGame", new { id = game.IdGame }, game);
+            return CreatedAtAction("GetHelp", new { id = help.HelpId }, help);
         }
 
-        // DELETE: api/Game/5
+        // DELETE: api/Help/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGame(int id)
+        public async Task<IActionResult> DeleteHelp(int id)
         {
-            var game = await _context.Game.FindAsync(id);
-            if (game == null)
+            var help = await _context.Help.FindAsync(id);
+            if (help == null)
             {
                 return NotFound();
             }
 
-            _context.Game.Remove(game);
+            _context.Help.Remove(help);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool GameExists(int id)
+        private bool HelpExists(int id)
         {
-            return _context.Game.Any(e => e.IdGame == id);
+            return _context.Help.Any(e => e.HelpId == id);
         }
     }
 }

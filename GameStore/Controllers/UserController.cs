@@ -34,7 +34,7 @@ namespace Gamestore.Controllers
         private readonly JWTConfig _jwTConfig;
         private readonly GameStoreDBContext _context;
 
-        public UserController(ILogger<UserController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IOptions<JWTConfig> jwtConfig, RoleManager<IdentityRole> roleManager, GameStoreDBContext context) 
+        public UserController(ILogger<UserController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IOptions<JWTConfig> jwtConfig, RoleManager<IdentityRole> roleManager, GameStoreDBContext context)
         {
             _logger = logger;
             _userManager = userManager;
@@ -54,13 +54,14 @@ namespace Gamestore.Controllers
                 {
                     return await Task.FromResult(new ResponseModel(ResponseCode.ERROR, "Roles Are Missing", null));
                 }
-                foreach (var role in model.Roles) { 
-                    if (!await _roleManager.RoleExistsAsync(role))
+                foreach (var role in model.Roles)
                 {
-                    return await Task.FromResult(new ResponseModel(ResponseCode.ERROR, "Role doesnt exist", null));
+                    if (!await _roleManager.RoleExistsAsync(role))
+                    {
+                        return await Task.FromResult(new ResponseModel(ResponseCode.ERROR, "Role doesnt exist", null));
+                    }
                 }
-                }
-                var user = new AppUser() { FullName = model.FullName, Email = model.Email, UserName = model.Email, DateCreated = DateTime.Now, DateModified = DateTime.Now, Funds = 0};
+                var user = new AppUser() { FullName = model.FullName, Email = model.Email, UserName = model.Email, DateCreated = DateTime.Now, DateModified = DateTime.Now, Funds = 0 };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
@@ -69,7 +70,7 @@ namespace Gamestore.Controllers
                     {
                         await _userManager.AddToRoleAsync(tempUser, role);
                     }
-                        
+
                     return await Task.FromResult(new ResponseModel(ResponseCode.OK, "User has been registered", null));
                 }
                 return await Task.FromResult(new ResponseModel(ResponseCode.ERROR, "", result.Errors.Select(x => x.Description).ToArray()));
@@ -82,7 +83,7 @@ namespace Gamestore.Controllers
 
         [HttpPost("AddFunds")]
         public async Task<object> AddFunds([FromBody] AddFundsBindingModel model)
-        {            
+        {
             var currentUser = await _userManager.FindByEmailAsync(model.Email);
             currentUser.Funds = currentUser.Funds + model.Funds;
             await _userManager.UpdateAsync(currentUser);
@@ -94,12 +95,19 @@ namespace Gamestore.Controllers
         [HttpPost("RemoveFunds")]
         public async Task<object> RemoveFunds([FromBody] AddFundsBindingModel model)
         {
+            //TODO VALIDACION PARA CUANDO NO TENGA FUNDS
             var currentUser = await _userManager.FindByEmailAsync(model.Email);
-            currentUser.Funds = currentUser.Funds - model.Funds;
-            await _userManager.UpdateAsync(currentUser);
-
-            return await Task.FromResult(new ResponseModel(ResponseCode.OK, "Funds removed successfully!", null));
-
+            var result = currentUser.Funds - model.Funds;
+            if (result < 0)
+            {
+                return await Task.FromResult(new ResponseModel(ResponseCode.ERROR, "Not enough funds available.", null));
+            }
+            else
+            {
+                currentUser.Funds = result;
+                await _userManager.UpdateAsync(currentUser);
+                return await Task.FromResult(new ResponseModel(ResponseCode.OK, "Funds removed successfully!", null));
+            }
         }
 
 
@@ -117,7 +125,8 @@ namespace Gamestore.Controllers
                 userFinal = new UserDTO(currentUser.FullName, currentUser.Email, currentUser.UserName, currentUser.DateCreated, roles, currentUser.Funds);
 
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "", userFinal));
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.ERROR, ex.Message, null));
             }
@@ -141,7 +150,8 @@ namespace Gamestore.Controllers
                 }
                 //return await Task.FromResult(users);
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "", alluserDTO));
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.ERROR, ex.Message, null));
             }
@@ -163,7 +173,7 @@ namespace Gamestore.Controllers
                     {
                         alluserDTO.Add(new UserDTO(user.FullName, user.Email, user.UserName, user.DateCreated, roles, user.Funds));
                     }
-                    
+
                 }
                 //return await Task.FromResult(users);
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "", alluserDTO));
@@ -174,7 +184,7 @@ namespace Gamestore.Controllers
             }
         }
 
-        
+
         [HttpGet("GetRoles")]
         public async Task<object> GetRoles()
         {
@@ -182,8 +192,8 @@ namespace Gamestore.Controllers
             {
 
 
-                var roles = _roleManager.Roles.Select(x=> x.Name).ToList(); ;
-                    
+                var roles = _roleManager.Roles.Select(x => x.Name).ToList(); ;
+
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "", roles));
             }
             catch (Exception ex)
@@ -197,7 +207,7 @@ namespace Gamestore.Controllers
         {
             try
             {
-                
+
                 if (ModelState.IsValid)
                 {
                     var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
@@ -208,7 +218,7 @@ namespace Gamestore.Controllers
                         var user = new UserDTO(appUser.FullName, appUser.Email, appUser.UserName, appUser.DateCreated, roles, appUser.Funds);
                         //return await Task.FromResult("Login successfully");
                         user.Token = GenerateToken(appUser, roles);
-                        return await Task.FromResult(new ResponseModel(ResponseCode.OK, "" , user));
+                        return await Task.FromResult(new ResponseModel(ResponseCode.OK, "", user));
                     }
                 }
                 return await Task.FromResult(new ResponseModel(ResponseCode.ERROR, "Invalid username or password", null));
@@ -241,7 +251,8 @@ namespace Gamestore.Controllers
                     return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.OK, "Role added succesfully", null));
                 }
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.ERROR, "Something went wrong, try again", null));
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return await Task.FromResult(new ResponseModel(GameStore.Enums.ResponseCode.ERROR, ex.Message, null));
             }
@@ -268,17 +279,17 @@ namespace Gamestore.Controllers
                 Subject = new System.Security.Claims.ClaimsIdentity(claims),
                 Expires = DateTime.Now.AddHours(12),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-             };
+            };
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
             return jwtTokenHandler.WriteToken(token);
-            }
+        }
 
-        
+
         private bool AppUserExists(string email)
         {
             return _context.AppUser.Any(e => e.Email == email);
         }
     }
 
-    
+
 }

@@ -5,59 +5,54 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using GameStore.Models.Catalogo;
-using Microsoft.AspNetCore.Authorization;
-using GameStore.Models;
-using GameStore.Enums;
 using GameStore.Data;
+using GameStore.Models.Catalogo;
 
 namespace GameStore.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class GameController : ControllerBase
+    public class JobsController : ControllerBase
     {
         private readonly GameStoreDBContext _context;
 
-        public GameController(GameStoreDBContext context)
+        public JobsController(GameStoreDBContext context)
         {
             _context = context;
         }
 
-        // GET: api/Game
-        //[Authorize(Roles = "Admin, User")]
-        [HttpGet ("GetAllGames")]
-        public async Task<ActionResult<IEnumerable<Game>>> GetGame()
+        // GET: api/Jobs
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Jobs>>> GetJobs()
         {
-            return await _context.Game.ToListAsync();
+            return await _context.Jobs.ToListAsync();
         }
 
-        // GET: api/Game/5
+        // GET: api/Jobs/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Game>> GetGame(int id)
+        public async Task<ActionResult<Jobs>> GetJobs(int id)
         {
-            var game = await _context.Game.FindAsync(id);
+            var jobs = await _context.Jobs.FindAsync(id);
 
-            if (game == null)
+            if (jobs == null)
             {
                 return NotFound();
             }
 
-            return game;
+            return jobs;
         }
 
-
-        // PUT: api/Game/5
+        // PUT: api/Jobs/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutGame(int id, [FromBody] Game game)
+        public async Task<IActionResult> PutJobs(int id, Jobs jobs)
         {
-            if (id != game.IdGame)
+            if (id != jobs.JobId)
             {
                 return BadRequest();
             }
 
-            _context.Entry(game).State = EntityState.Modified;
+            _context.Entry(jobs).State = EntityState.Modified;
 
             try
             {
@@ -65,7 +60,7 @@ namespace GameStore.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!GameExists(id))
+                if (!JobsExists(id))
                 {
                     return NotFound();
                 }
@@ -78,36 +73,36 @@ namespace GameStore.Controllers
             return NoContent();
         }
 
-        // POST: api/Game
+        // POST: api/Jobs
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost("AddGame")]
-        public async Task<ActionResult<Game>> PostGame([FromBody] Game game)
+        [HttpPost]
+        public async Task<ActionResult<Jobs>> PostJobs(Jobs jobs)
         {
-            _context.Game.Add(game);
+            _context.Jobs.Add(jobs);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetGame", new { id = game.IdGame }, game);
+            return CreatedAtAction("GetJobs", new { id = jobs.JobId }, jobs);
         }
 
-        // DELETE: api/Game/5
+        // DELETE: api/Jobs/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteGame(int id)
+        public async Task<IActionResult> DeleteJobs(int id)
         {
-            var game = await _context.Game.FindAsync(id);
-            if (game == null)
+            var jobs = await _context.Jobs.FindAsync(id);
+            if (jobs == null)
             {
                 return NotFound();
             }
 
-            _context.Game.Remove(game);
+            _context.Jobs.Remove(jobs);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool GameExists(int id)
+        private bool JobsExists(int id)
         {
-            return _context.Game.Any(e => e.IdGame == id);
+            return _context.Jobs.Any(e => e.JobId == id);
         }
     }
 }
